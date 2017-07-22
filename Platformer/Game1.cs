@@ -85,9 +85,12 @@ namespace Platformer
 
     public enum GameState
     {
+        DesignALevel,
         MainMenu,
         PauseMenu,
         LevelEdit,
+        TestPlay,
+        Exiting,
         GamePlay
     }
 
@@ -97,7 +100,9 @@ namespace Platformer
 
         GameState gs;
         public static GraphicsDeviceManager graphics;
-        
+
+        MainMenu m_mainmenu;
+
         SpriteBatch spriteBatch;
         Dictionary<string, Level> m_levels;
         Player m_Player;
@@ -115,8 +120,9 @@ namespace Platformer
 
         protected override void Initialize()
         {
-            gs = GameState.LevelEdit;
+            gs = GameState.MainMenu;
             Pixelclass.Content = Content;
+            
             m_levels = new Dictionary<string, Level>();
             m_Player = new Player();
             //if (gs == GameState.LevelEdit)
@@ -125,7 +131,7 @@ namespace Platformer
                 m_input = new InputManager(PlayerIndex.One);
             edit = new MapEdit();
             string fileLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\Pixel Studios\Platformer\levels.xml";
-
+            edit.ForceLoad();
 
 
 
@@ -137,6 +143,9 @@ namespace Platformer
             spriteBatch = new SpriteBatch(GraphicsDevice);
             Pixelclass.Pixel = Content.Load<Texture2D>("Pixel");
             Pixelclass.Font = Content.Load<SpriteFont>("Font1");
+
+            //Have to innitalise here because font needs to exist for setup
+            m_mainmenu = new MainMenu(new Vector2 (20,30));
 
             m_levels.Add("World1", SaveDirector.LoadData("mylvl"));
 
@@ -150,35 +159,50 @@ namespace Platformer
 
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            if (gs == GameState.Exiting)
             {
-
+                Exit();
             }
 
-            if (m_input.WasPressedBack(Keys.Enter))
+            if (gs == GameState.DesignALevel || gs == GameState.TestPlay || gs == GameState.LevelEdit)
             {
-                if (gs == GameState.GamePlay)
+                if (m_input.WasPressedBack(Keys.Escape))
                 {
-                    gs = GameState.LevelEdit;
-                    edit.ForceLoad();
+                    gs = GameState.MainMenu;
+                    edit.ForceSave();
+
                 }
-                else
+                if (m_input.WasPressedBack(Keys.Enter))
                 {
-                    m_levels.Clear();
-                    m_levels.Add("World1", SaveDirector.LoadData("mylvl"));
-                    m_Player.SetStartPosition(m_levels["World1"]);
-                    gs = GameState.GamePlay;
+                    if (gs == GameState.TestPlay)
+                    {
+                        gs = GameState.LevelEdit;
+                        edit.ForceLoad();
+                    }
+                    else
+                    {
+                        edit.ForceSave();
+                        m_levels.Clear();
+                        m_levels.Add("World1", SaveDirector.LoadData("mylvl"));
+                        m_Player.SetStartPosition(m_levels["World1"]);
+                        gs = GameState.TestPlay;
+                    }
                 }
+
+
+                if (gs == GameState.TestPlay)
+                {
+                    m_Player.UpdateMe(gameTime, m_levels["World1"], m_input);
+                    m_levels["World1"].UpdateMe(gameTime, m_Player, m_input);
+                }
+                else if (gs == GameState.LevelEdit)
+                    edit.UpdateMe(gameTime, m_input);
             }
-
-
-            if (gs == GameState.GamePlay)
+            else if (gs == GameState.MainMenu)
             {
-                m_Player.UpdateMe(gameTime, m_levels["World1"], m_input);
-                m_levels["World1"].UpdateMe(gameTime, m_Player, m_input);
+                m_mainmenu.UpdateMe(gameTime, m_input, ref gs);
             }
-            else if (gs == GameState.LevelEdit)
-                edit.UpdateMe(gameTime, m_input);
+
 
 
             m_input.UpdateMe();
@@ -190,16 +214,21 @@ namespace Platformer
             GraphicsDevice.Clear(Color.White);
 
             spriteBatch.Begin();
-
-            if (gs == GameState.GamePlay)
+            if (gs == GameState.DesignALevel || gs == GameState.TestPlay || gs == GameState.LevelEdit)
             {
-                m_levels["World1"].DrawMe(spriteBatch);
-                m_Player.DrawMe(spriteBatch);
+                if (gs == GameState.TestPlay)
+                {
+                    m_levels["World1"].DrawMe(spriteBatch);
+                    m_Player.DrawMe(spriteBatch);
+                }
+                else if (gs == GameState.LevelEdit)
+                {
+                    edit.DrawMe(spriteBatch);
+                }
             }
-            else if (gs == GameState.LevelEdit)
+            else if (gs == GameState.MainMenu)
             {
-                edit.DrawMe(spriteBatch);
-
+                m_mainmenu.Drawme(spriteBatch);
             }
 
             spriteBatch.End();

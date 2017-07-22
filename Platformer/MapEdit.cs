@@ -286,6 +286,10 @@ namespace Platformer
         {
             levelCreate = new Level(SaveDirector.PhraseData(SaveDirector.LoadData("mylvl")));
         }
+        public void ForceSave()
+        {
+            SaveDirector.SaveData(levelCreate,"mylvl");
+        }
 
     }
 
