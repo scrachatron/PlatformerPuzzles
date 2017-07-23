@@ -20,7 +20,7 @@ namespace Platformer
         {
             
             base.Options.Add(new MenuOption("Play Campaign", new Vector2(base.m_startingLocation.X, base.m_startingLocation.Y + (Font.MeasureString("Level").Y + 5) * Options.Count), GameState.GamePlay));
-            base.Options.Add(new MenuOption("Design a Custom Campaign", new Vector2(base.m_startingLocation.X, base.m_startingLocation.Y + (Font.MeasureString("Level").Y + 5) * Options.Count), GameState.LevelEdit));
+            base.Options.Add(new MenuOption("Design a Custom Campaign", new Vector2(base.m_startingLocation.X, base.m_startingLocation.Y + (Font.MeasureString("Level").Y + 5) * Options.Count), GameState.DesignALevel));
             base.Options.Add(new MenuOption("Play Custom Campaign", new Vector2(base.m_startingLocation.X, base.m_startingLocation.Y + (Font.MeasureString("Level").Y + 5) * Options.Count), GameState.LevelEdit));
             base.Options.Add(new MenuOption("Quit", new Vector2(base.m_startingLocation.X, base.m_startingLocation.Y + (Font.MeasureString("Level").Y + 5) * Options.Count), GameState.Exiting));
             m_TitleCard = "Picksl";

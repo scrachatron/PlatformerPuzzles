@@ -102,12 +102,10 @@ namespace Platformer
         public static GraphicsDeviceManager graphics;
 
         MainMenu m_mainmenu;
+        LevelEdit m_levelEdit;
 
         SpriteBatch spriteBatch;
-        Dictionary<string, Level> m_levels;
-        Player m_Player;
         InputManager m_input;
-        MapEdit edit;
 
         public Game1()
         {
@@ -120,20 +118,18 @@ namespace Platformer
 
         protected override void Initialize()
         {
+
             gs = GameState.MainMenu;
             Pixelclass.Content = Content;
-            
-            m_levels = new Dictionary<string, Level>();
-            m_Player = new Player();
+            Pixelclass.Pixel = Content.Load<Texture2D>("Pixel");
+            Pixelclass.Font = Content.Load<SpriteFont>("Font1");
+
             //if (gs == GameState.LevelEdit)
             //    m_input = new InputManager();
             //else
-                m_input = new InputManager(PlayerIndex.One);
-            edit = new MapEdit();
-            string fileLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\Pixel Studios\Platformer\levels.xml";
-            edit.ForceLoad();
+            m_input = new InputManager(PlayerIndex.One);
 
-
+            m_levelEdit = new LevelEdit();
 
             base.Initialize();
         }
@@ -141,15 +137,13 @@ namespace Platformer
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            Pixelclass.Pixel = Content.Load<Texture2D>("Pixel");
-            Pixelclass.Font = Content.Load<SpriteFont>("Font1");
+            //Pixelclass.Pixel = Content.Load<Texture2D>("Pixel");
+            //Pixelclass.Font = Content.Load<SpriteFont>("Font1");
 
             //Have to innitalise here because font needs to exist for setup
             m_mainmenu = new MainMenu(new Vector2 (20,30));
 
-            m_levels.Add("World1", SaveDirector.LoadData("mylvl"));
 
-            m_Player.SetStartPosition(m_levels["World1"]);
         }
 
         protected override void UnloadContent()
@@ -163,40 +157,9 @@ namespace Platformer
             {
                 Exit();
             }
-
-            if (gs == GameState.DesignALevel || gs == GameState.TestPlay || gs == GameState.LevelEdit)
+            if (gs == GameState.DesignALevel)
             {
-                if (m_input.WasPressedBack(Keys.Escape))
-                {
-                    gs = GameState.MainMenu;
-                    edit.ForceSave();
-
-                }
-                if (m_input.WasPressedBack(Keys.Enter))
-                {
-                    if (gs == GameState.TestPlay)
-                    {
-                        gs = GameState.LevelEdit;
-                        edit.ForceLoad();
-                    }
-                    else
-                    {
-                        edit.ForceSave();
-                        m_levels.Clear();
-                        m_levels.Add("World1", SaveDirector.LoadData("mylvl"));
-                        m_Player.SetStartPosition(m_levels["World1"]);
-                        gs = GameState.TestPlay;
-                    }
-                }
-
-
-                if (gs == GameState.TestPlay)
-                {
-                    m_Player.UpdateMe(gameTime, m_levels["World1"], m_input);
-                    m_levels["World1"].UpdateMe(gameTime, m_Player, m_input);
-                }
-                else if (gs == GameState.LevelEdit)
-                    edit.UpdateMe(gameTime, m_input);
+                m_levelEdit.UpdateMe(gameTime, m_input, ref gs);
             }
             else if (gs == GameState.MainMenu)
             {
@@ -214,17 +177,9 @@ namespace Platformer
             GraphicsDevice.Clear(Color.White);
 
             spriteBatch.Begin();
-            if (gs == GameState.DesignALevel || gs == GameState.TestPlay || gs == GameState.LevelEdit)
+            if (gs == GameState.DesignALevel)
             {
-                if (gs == GameState.TestPlay)
-                {
-                    m_levels["World1"].DrawMe(spriteBatch);
-                    m_Player.DrawMe(spriteBatch);
-                }
-                else if (gs == GameState.LevelEdit)
-                {
-                    edit.DrawMe(spriteBatch);
-                }
+                m_levelEdit.DrawMe(spriteBatch);
             }
             else if (gs == GameState.MainMenu)
             {

@@ -23,10 +23,10 @@ namespace Platformer
                 m_options = value;
             }
         }
-        List<MenuOption> m_options = new List<MenuOption>();
-        int m_selecton;
+        protected List<MenuOption> m_options = new List<MenuOption>();
+        protected int m_selecton;
         protected Vector2 m_startingLocation;
-        private MenuSelector m_selector;
+        protected MenuSelector m_selector;
 
         public Menu(Vector2 StartingLocation)
         {
@@ -91,18 +91,48 @@ namespace Platformer
             m_targetPos = new Vector2(m_pos.X + Font.MeasureString(message).X + 30, m_pos.Y + Font.MeasureString(message).Y / 2);
             Selected = false;
         }
-        public void UpdateMe()
+        public MenuOption(string message, Vector2 pos)
+        { 
+            m_pos = pos;
+            m_message = message;
+            m_targetPos = new Vector2(m_pos.X + Font.MeasureString(message).X + 30, m_pos.Y + Font.MeasureString(message).Y / 2);
+            Selected = false;
+        }
+        public virtual void UpdateMe()
         {
             Selected = false;
         }
 
-        public void DrawMe(SpriteBatch sb)
+        public virtual void DrawMe(SpriteBatch sb)
         {
             
             if (Selected)
                 sb.DrawString(Font, m_message, m_pos, Color.Black);
             else
                 sb.DrawString(Font, m_message, m_pos, Color.Gray);
+        }
+
+    }
+
+    class EditMenuOption : MenuOption
+    {
+        public EditState ChangeEditState
+        {
+            get { return m_ChangeEditState; }
+        }
+        EditState m_ChangeEditState;
+
+        public EditMenuOption(string message,Vector2 pos, EditState targetes) : base(message,pos)
+        {
+            m_ChangeEditState = targetes;
+        }
+        public override void UpdateMe()
+        {
+            base.UpdateMe();
+        }
+        public override void DrawMe(SpriteBatch sb)
+        {
+            base.DrawMe(sb);
         }
 
     }
